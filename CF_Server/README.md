@@ -5,7 +5,7 @@
 
 Asegúrese de tener instalado [Python](https://www.python.org/downloads/).
 
-Para ejecutar el servidor, sitúese en la carpeta raiz y ejecute los siguientes comandos:
+Clonar el repositorio en una carpeta local y, para ejecutar el servidor, sitúese en la carpeta raiz y ejecute los siguientes comandos:
 ```
 pip install Django==1.11.6
 pip install djangorestframework

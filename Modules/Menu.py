@@ -7,6 +7,7 @@ from Modules.Image import *
 from Modules.Key import *
 from Modules.Music import *
 from Modules.Option import *
+from Modules.Physics import *
 from Modules.Proxy import *
 from Modules.Text import *
 pygame.init()
@@ -37,8 +38,11 @@ class Menu:
         self.clock = pygame.time.Clock()
 
         # Load characters and scenarios from the server
-        self.characters = Proxy.getCharacters()
-        self.scenarios = Proxy.getScenarios()
+        try:
+            self.characters = Proxy.getCharacters()
+            self.scenarios = Proxy.getScenarios()
+        except:
+            raise SystemExit('No se pudo conectar con el servidor.')
 
         # Play music and set volume
         Music.playSong(1)
@@ -155,6 +159,9 @@ class Menu:
             if mousebuttonupTriggered:
                 if buttonBack.mouseInBonudaries():
                     self.gameMenu()
+                elif buttonStart.mouseInBonudaries():
+                    juego = MainGame(self.display)
+                    juego.game()
 
             # Refresh
             pygame.display.update()
