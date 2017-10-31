@@ -49,8 +49,8 @@ class Menu:
         Music.setVolume(Option.volume)
 
         # Current character being chosen by each player
-        self.player1Character = None
-        self.player2Character = None
+        self.player1Character = {'name': ''}
+        self.player2Character = {'name': ''}
 
         # Current player being configured in the configure player menu
         self.configuredPlayer = 1
@@ -132,7 +132,7 @@ class Menu:
                     elif (columnIndex == 1):
                         x = (self.currentDisplayWidth * 3 / 4) - 100
 
-                    y = 200 + (rowIndex * 100)
+                    y = 150 + (rowIndex * 100)
 
                     characterButtons.append(Button(character['name'], 'white', 'dolphins.ttf', 36, Color.black, Color.red, x, y, 200, 50, self.display))
 
@@ -140,12 +140,12 @@ class Menu:
                 character = self.characters[len(self.characters) - 1]
                 if (len(self.characters) % 2 == 0):
                     x = (self.currentDisplayWidth * 3 / 4) - 100
-                    y = 200 + (rowIndex * 100)
+                    y = 150 + (rowIndex * 100)
                     characterButtons.append(Button(character['name'], 'white', 'dolphins.ttf', 36, Color.black, Color.red, x, y, 200, 50, self.display))
                 else:
                     rowIndex = rowIndex + 1
                     x = (self.currentDisplayWidth / 2) - 100
-                    y = 200 + (rowIndex * 100)
+                    y = 150 + (rowIndex * 100)
                     characterButtons.append(Button(character['name'], 'white', 'dolphins.ttf', 36, Color.black, Color.red, x, y, 200, 50, self.display))
                 
             # Draw rest of menu content
@@ -153,15 +153,35 @@ class Menu:
 
             Text.renderLabel('Selección de personajes', 'white', 'dolphins.ttf', 70, self.currentDisplayWidth / 2, 100, '', self.display)
 
-            buttonStart = Button('COMENZAR', 'white', 'dolphins.ttf', 36, Color.black, Color.brightOrange, (self.currentDisplayWidth / 2) - 150, 575, 300, 75, self.display)
+            Text.renderLabel(self.player1Character['name'], 'white', 'dolphins.ttf', 50, self.currentDisplayWidth / 4, 550, '', self.display)            
+            Text.renderLabel('VS', 'white', 'dolphins.ttf', 65, self.currentDisplayWidth / 2, 550, '', self.display)
+            Text.renderLabel(self.player2Character['name'], 'white', 'dolphins.ttf', 50, self.currentDisplayWidth * 3 / 4, 550, '', self.display)
+
+            buttonStart = Button('COMENZAR', 'white', 'dolphins.ttf', 36, Color.black, Color.brightOrange, (self.currentDisplayWidth / 2) - 150, 600, 300, 75, self.display)
 
             # Listen for button clicked
+            characterButtonClicked = False
+            clickedCharacterButtonIndex = 0
+            index = 0
+            while (not characterButtonClicked and (index < len(characterButtons))):
+                if characterButtons[index].mouseInBonudaries():
+                    clickedCharacterButtonIndex = index
+                    characterButtonClicked = True
+                else:
+                    index = index + 1
+
             if mousebuttonupTriggered:
                 if buttonBack.mouseInBonudaries():
                     self.gameMenu()
+                elif characterButtonClicked:
+                    if (self.player1Character['name'] == ''):
+                        self.player1Character = self.characters[clickedCharacterButtonIndex]
+                    elif (self.player2Character['name'] == ''):
+                        self.player2Character = self.characters[clickedCharacterButtonIndex]
                 elif buttonStart.mouseInBonudaries():
-                    juego = MainGame(self.display)
-                    juego.game()
+                    if (self.player1Character['name'] != '' and self.player2Character['name'] != ''):
+                        juego = MainGame(self.display)
+                        juego.game()
 
             # Refresh
             pygame.display.update()

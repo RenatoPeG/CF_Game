@@ -20,6 +20,8 @@ Integrantes:
 
 Este trabajo es parte del curso Ingeniería de Software II sección 801, el cual consiste en desarrollar un juego utilizando Python, Pygame y Django entre las principales herramientas. Este proyecto se desarrollará a lo largo del ciclo académico, siendo este proyecto entregado en la última semana (n. 16) del ciclo.
 
+El Product Backlog del trabajo se encuentra [aquí](https://docs.google.com/spreadsheets/d/1vUY-xtefyPXVdKVG4LdZoNn1RjQs8y5NZqC8PksGkvo/edit?usp=sharing).
+
 ### Descripción del producto
 El juego consiste en peleas por turnos entre dos personajes, los cuales tendrán ciertas características tales como vida, stamina, y objetos utilizables. Los personajes serán en su mayoría personas celebres de la farándula peruana (ex. Melcocha, Peluchin, el Cuto, etc.). El propósito del jugador es poder pasar todos los niveles presentados hasta llegar a un jefe final; un estilo muy parecido a clásicos de la industria como _Tekken_ o _Street Fighter_. El diseño que el juego tendrá es estilo retro ya que es tendencia en estos tiempos. El nombre del juego mientras su desarrollo será **_NOMBRE CLAVE_** el cual será cambiado posteriormente para la salida de la versión final del juego (nombre comercial). El juego presentara dos modalidades: modo historia y modo arcade. El modo historia consistirá en 11 niveles en donde el jugador enfrentará personajes elegidos aleatoriamente, cada nivel siendo más difícil que el anterior. El modo arcade consistirá en peleas con personajes elegidos aleatoriamente hasta que el jugador pierda, cada nivel presentará una dificultad mayor al anterior.
 
