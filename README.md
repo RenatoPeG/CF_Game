@@ -3,7 +3,8 @@
 
 ## Wiki
 
-Para ejecutar el proyecto seguir las siguientes instrucciones:
+Para ejecutar el juego seguir las siguientes instrucciones:
+- En primer lugar asegurese de que se esté ejecutando el servidor
 - Clonar el repositorio en una carpeta local
 - Situarse en la carpeta Vendor/requests y ejecutar el comando `pip install .`
 - Volver a la carpeta raiz y ejecutar el comando `python CholoFighter.py`
