@@ -4,7 +4,8 @@ class Music:
 	# Static variables
 	musicPath = 'Resources/Music/'
 	tracklist = {
-		1: "quiero_amanecer.mp3"
+		1: 'quiero_amanecer.mp3',
+		2: 'el_cervecero.mp3'
 	}
 
 	@staticmethod

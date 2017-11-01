@@ -30,11 +30,11 @@ class Menu:
         self.currentDisplayWidth = self.defaultDisplayWidth
         self.currentDisplayHeight = self.defaultDisplayHeight
 
-        # Initialize display
+        # Set display
         self.display = pygame.display.set_mode((self.currentDisplayWidth, self.currentDisplayHeight))
         pygame.display.set_caption('Cholo Fighter')
 
-        # Initialize clock
+        # Set clock
         self.clock = pygame.time.Clock()
 
         # Load characters and scenarios from the server
@@ -180,8 +180,9 @@ class Menu:
                         self.player2Character = self.characters[clickedCharacterButtonIndex]
                 elif buttonStart.mouseInBonudaries():
                     if (self.player1Character['name'] != '' and self.player2Character['name'] != ''):
-                        juego = MainGame(self.display)
-                        juego.game()
+                        match = Physics(self.display, selfcurrentDisplayWidth, self.currentDisplayHeight, self.player1Character, self.player2Character)
+                        match.startFight()
+                        self.gameMenu()
 
             # Refresh
             pygame.display.update()
