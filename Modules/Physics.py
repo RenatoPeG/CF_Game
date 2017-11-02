@@ -12,10 +12,30 @@ class Physics():
     # Constants
     gravity = 10
 
+    defaultDisplayWidth = 1200
+    defaultDisplayHeight = 700
+
     def __init__(self, display, currentDisplayWidth, currentDisplayHeight, player1Character, player2Character):
         # Set display parameters
         self.currentDisplayWidth = currentDisplayWidth
         self.currentDisplayHeight = currentDisplayHeight
+
+        # Set global scale
+        self.globalScale = 1
+
+        widthExpansion = self.currentDisplayWidth / defaultDisplayWidth
+        heightExpansion = self.currentDisplayHeight / defaultDisplayHeight
+
+        if self.currentDisplayWidth > defaultDisplayWidth:
+            if (widthExpansion * defaultDisplayHeight) > self.currentDisplayHeight:
+                self.globalScale = heightExpansion
+            else:
+                self.globalScale = widthExpansion
+        elif self.currentDisplayHeight > defaultDisplayHeight:
+            if (heightExpansion * defaultDisplayWidth) > self.currentDisplayWidth:
+                self.globalScale = widthExpansion
+            else:
+                self.globalScale = heightExpansion
 
         # Set the players that will fight
         self.player1 = self.Player(player1Character, pygame.math.Vector2(0, 0), 1)
@@ -35,7 +55,13 @@ class Physics():
         Music.setVolume(Option.volume)
 
     class Collider():
-        def __init__(self, width, height, canCollide):
+        def __init__(self, width, height, initialPosition):
+            self.width = width
+            self.height = height
+            self.position = initialPosition
+            self.velocity = pygame.math.Vector2(0, 0)
+
+        def move(self):
             pass
 
     class Player():
