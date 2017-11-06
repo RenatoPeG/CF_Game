@@ -11,6 +11,8 @@ class Physics():
 
     # Constants
     gravity = 2
+    floorElevation = 50
+    playerMovementSpeed = 6
 
     baseDisplayWidth = 1200
     baseDisplayHeight = 700
@@ -38,8 +40,8 @@ class Physics():
                 self.globalScale = heightExpansion
 
         # Set the players that will fight
-        self.player1 = self.Player(player1Character, pygame.math.Vector2(0, 0), 1)
-        self.player2 = self.Player(player2Character, pygame.math.Vector2(1000, 0), -1)
+        self.player1 = self.Player(player1Character, pygame.math.Vector2(100, 0), 1)
+        self.player2 = self.Player(player2Character, pygame.math.Vector2(self.currentDisplayWidth - 200, 0), -1)
 
         # Set the scenario
         self.scenario = pygame.image.load(Physics.scenariosSpritesFolder + 'plaza_mayor.png').convert()
@@ -73,8 +75,8 @@ class Physics():
                 if (self.velocity[1] < 0):
                     self.velocity[1] = 0
             # ...touching floor
-            if (self.position[1] + self.height >= Physics.baseDisplayHeight):
-                self.position[1] = Physics.baseDisplayHeight - self.height
+            if (self.position[1] + self.height >= Physics.baseDisplayHeight - Physics.floorElevation):
+                self.position[1] = Physics.baseDisplayHeight - Physics.floorElevation - self.height
                 self.isFloored = True
                 if (self.velocity[1] > 0):
                     self.velocity[1] = 0
@@ -107,6 +109,8 @@ class Physics():
             self.moveSpriteInv = pygame.image.load(filePrefix + '_move_inv.png').convert_alpha()
             self.jumpSprite = pygame.image.load(filePrefix + '_jump.png').convert_alpha()
             self.jumpSpriteInv = pygame.image.load(filePrefix + '_jump_inv.png').convert_alpha()
+            self.primaryBasicAttackSprite = pygame.image.load(filePrefix + '_primary_basic_attack.png').convert_alpha()
+            self.primaryBasicAttackSpriteInv = pygame.image.load(filePrefix + '_primary_basic_attack_inv.png').convert_alpha()
 
             # Initialize collider
             self.collider = Physics.Collider(self.moveSprite.get_rect().size[0], self.moveSprite.get_rect().size[1], initialPosition)
@@ -133,21 +137,23 @@ class Physics():
             if self.player1.state == 'Move':
                 if keysPressed[Option.controlPlayer1.moveLeft] or keysPressed[Option.controlPlayer1.moveRight]:
                     if keysPressed[Option.controlPlayer1.moveLeft]:
-                        self.player1.collider.velocity[0] = -5
+                        self.player1.collider.velocity[0] = -Physics.playerMovementSpeed
                     elif keysPressed[Option.controlPlayer1.moveRight]:
-                        self.player1.collider.velocity[0] = 5
+                        self.player1.collider.velocity[0] = Physics.playerMovementSpeed
                 else:
                     self.player1.collider.velocity[0] = 0
                 if keysPressed[Option.controlPlayer1.jump]:
                     if self.player1.collider.isFloored:
                         self.player1.collider.velocity[1] = -30
+                if keysPressed[Option.controlPlayer1.primaryBasicAttack]:
+                    pass
 
             if self.player2.state == 'Move':
                 if keysPressed[Option.controlPlayer2.moveLeft] or keysPressed[Option.controlPlayer2.moveRight]:
                     if keysPressed[Option.controlPlayer2.moveLeft]:
-                        self.player2.collider.velocity[0] = -5
+                        self.player2.collider.velocity[0] = -Physics.playerMovementSpeed
                     elif keysPressed[Option.controlPlayer2.moveRight]:
-                        self.player2.collider.velocity[0] = 5
+                        self.player2.collider.velocity[0] = Physics.playerMovementSpeed
                 else:
                     self.player2.collider.velocity[0] = 0
                 if keysPressed[Option.controlPlayer2.jump]:
