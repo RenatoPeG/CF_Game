@@ -127,37 +127,32 @@ class Physics():
                     pygame.quit()
                     sys.exit()
 
-                if event.type == pygame.KEYDOWN:
-                    if self.player1.state == 'Move':
-                        if event.key == Option.controlPlayer1.moveLeft:
-                            self.player1.collider.velocity[0] = -5
-                        if event.key == Option.controlPlayer1.moveRight:
-                            self.player1.collider.velocity[0] = 5
-                        if event.key == Option.controlPlayer1.jump:
-                            if self.player1.collider.isFloored:
-                                self.player1.collider.velocity[1] = -30
+            # Analyse keys
+            keysPressed = pygame.key.get_pressed()
 
-                    if self.player2.state == 'Move':
-                        if event.key == Option.controlPlayer2.moveLeft:
-                            self.player2.collider.velocity[0] = -5
-                        if event.key == Option.controlPlayer2.moveRight:
-                            self.player2.collider.velocity[0] = 5
-                        if event.key == Option.controlPlayer2.jump:
-                            if self.player2.collider.isFloored:
-                                self.player2.collider.velocity[1] = -30
+            if self.player1.state == 'Move':
+                if keysPressed[Option.controlPlayer1.moveLeft] or keysPressed[Option.controlPlayer1.moveRight]:
+                    if keysPressed[Option.controlPlayer1.moveLeft]:
+                        self.player1.collider.velocity[0] = -5
+                    elif keysPressed[Option.controlPlayer1.moveRight]:
+                        self.player1.collider.velocity[0] = 5
+                else:
+                    self.player1.collider.velocity[0] = 0
+                if keysPressed[Option.controlPlayer1.jump]:
+                    if self.player1.collider.isFloored:
+                        self.player1.collider.velocity[1] = -30
 
-                if event.type == pygame.KEYUP:
-                    if self.player1.state == 'Move':
-                        if event.key == Option.controlPlayer1.moveLeft:
-                            self.player1.collider.velocity[0] = 0
-                        if event.key == Option.controlPlayer1.moveRight:
-                            self.player1.collider.velocity[0] = 0
-
-                    if self.player2.state == 'Move':
-                        if event.key == Option.controlPlayer2.moveLeft:
-                            self.player2.collider.velocity[0] = 0
-                        if event.key == Option.controlPlayer2.moveRight:
-                            self.player2.collider.velocity[0] = 0
+            if self.player2.state == 'Move':
+                if keysPressed[Option.controlPlayer2.moveLeft] or keysPressed[Option.controlPlayer2.moveRight]:
+                    if keysPressed[Option.controlPlayer2.moveLeft]:
+                        self.player2.collider.velocity[0] = -5
+                    elif keysPressed[Option.controlPlayer2.moveRight]:
+                        self.player2.collider.velocity[0] = 5
+                else:
+                    self.player2.collider.velocity[0] = 0
+                if keysPressed[Option.controlPlayer2.jump]:
+                    if self.player2.collider.isFloored:
+                        self.player2.collider.velocity[1] = -30
 
             # Update looking direction
             if self.player1.collider.isFloored:
