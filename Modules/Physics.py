@@ -10,10 +10,10 @@ class Physics():
     scenariosSpritesFolder = 'Resources/Sprites/Scenarios/'
 
     # Constants
-    gravity = 10
+    gravity = 2
 
-    defaultDisplayWidth = 1200
-    defaultDisplayHeight = 700
+    baseDisplayWidth = 1200
+    baseDisplayHeight = 700
 
     def __init__(self, display, currentDisplayWidth, currentDisplayHeight, player1Character, player2Character):
         # Set display parameters
@@ -23,16 +23,16 @@ class Physics():
         # Set global scale
         self.globalScale = 1
 
-        widthExpansion = self.currentDisplayWidth / defaultDisplayWidth
-        heightExpansion = self.currentDisplayHeight / defaultDisplayHeight
+        widthExpansion = self.currentDisplayWidth / Physics.baseDisplayWidth
+        heightExpansion = self.currentDisplayHeight / Physics.baseDisplayHeight
 
-        if self.currentDisplayWidth > defaultDisplayWidth:
-            if (widthExpansion * defaultDisplayHeight) > self.currentDisplayHeight:
+        if self.currentDisplayWidth > Physics.baseDisplayWidth:
+            if (widthExpansion * Physics.baseDisplayHeight) > self.currentDisplayHeight:
                 self.globalScale = heightExpansion
             else:
                 self.globalScale = widthExpansion
-        elif self.currentDisplayHeight > defaultDisplayHeight:
-            if (heightExpansion * defaultDisplayWidth) > self.currentDisplayWidth:
+        elif self.currentDisplayHeight > Physics.baseDisplayHeight:
+            if (heightExpansion * Physics.baseDisplayWidth) > self.currentDisplayWidth:
                 self.globalScale = widthExpansion
             else:
                 self.globalScale = heightExpansion
@@ -42,7 +42,7 @@ class Physics():
         self.player2 = self.Player(player2Character, pygame.math.Vector2(1000, 0), -1)
 
         # Set the scenario
-        self.scenario = pygame.image.load(Physics.scenariosSpritesFolder + "scenario.png").convert()
+        self.scenario = pygame.image.load(Physics.scenariosSpritesFolder + 'plaza_mayor.png').convert()
 
         # Set display
         self.display = display
@@ -60,30 +60,64 @@ class Physics():
             self.height = height
             self.position = initialPosition
             self.velocity = pygame.math.Vector2(0, 0)
+            self.isFloored = False
 
         def move(self):
-            pass
+            # Apply gravity
+            self.velocity[1] = self.velocity[1] + Physics.gravity
+
+            # Analize if...
+            # ...touching roof
+            if (self.position[1] < 0):
+                self.position[1] = 0
+                if (self.velocity[1] < 0):
+                    self.velocity[1] = 0
+            # ...touching floor
+            if (self.position[1] + self.height >= Physics.baseDisplayHeight):
+                self.position[1] = Physics.baseDisplayHeight - self.height
+                self.isFloored = True
+                if (self.velocity[1] > 0):
+                    self.velocity[1] = 0
+            else:
+                self.isFloored = False
+            # ...touching left limit
+            if (self.position[0] < 0):
+                self.position[0] = 0
+                if (self.velocity[0] < 0):
+                    self.velocity[0] = 0
+            # ...touching right limit
+            if (self.position[0] + self.width > Physics.baseDisplayWidth):
+                self.position[0] = Physics.baseDisplayWidth - self.width
+                if (self.velocity[0] > 0):
+                    self.velocity[0] = 0
+
+            # Update position
+            self.position = self.position + self.velocity
 
     class Player():
         def __init__(self, character, initialPosition, lookingDirection):
             self.character = character
 
-            # Initialize vectors
-            self.position = initialPosition
-            self.velocity = pygame.math.Vector2(0, 0)
+            # Player state (by default it's Move, other states are: Attack, Damage, Death)
+            self.state = 'Move'
+
+            # Initialize sprites
+            filePrefix = Physics.charactersSpritesFolder + self.character['name'] + "/" + self.character['asset_prefix']
+            self.moveSprite = pygame.image.load(filePrefix + '_move.png').convert_alpha()
+            self.moveSpriteInv = pygame.image.load(filePrefix + '_move_inv.png').convert_alpha()
+            self.jumpSprite = pygame.image.load(filePrefix + '_jump.png').convert_alpha()
+            self.jumpSpriteInv = pygame.image.load(filePrefix + '_jump_inv.png').convert_alpha()
+
+            # Initialize collider
+            self.collider = Physics.Collider(self.moveSprite.get_rect().size[0], self.moveSprite.get_rect().size[1], initialPosition)
 
             # Player looking direction
             self.lookingDirection = lookingDirection
 
-            # Initialize sprites
-            filePrefix = Physics.charactersSpritesFolder + self.character['name'] + "/" + self.character['asset_prefix']
-            self.moveSprite = pygame.image.load(filePrefix + "_move.png").convert_alpha()
-            self.moveInvSprite = pygame.image.load(filePrefix + "_move.png").convert_alpha()
-
             if self.lookingDirection == 1:
                 self.currentSprite = self.moveSprite
             elif self.lookingDirection == -1:
-                self.currentSprite = self.moveInvSprite
+                self.currentSprite = self.moveSpriteInv
             
     def startFight(self):
         while True:
@@ -93,10 +127,84 @@ class Physics():
                     pygame.quit()
                     sys.exit()
 
-            # Draw the scenario
+                if event.type == pygame.KEYDOWN:
+                    if self.player1.state == 'Move':
+                        if event.key == Option.controlPlayer1.moveLeft:
+                            self.player1.collider.velocity[0] = -5
+                        if event.key == Option.controlPlayer1.moveRight:
+                            self.player1.collider.velocity[0] = 5
+                        if event.key == Option.controlPlayer1.jump:
+                            if self.player1.collider.isFloored:
+                                self.player1.collider.velocity[1] = -30
+
+                    if self.player2.state == 'Move':
+                        if event.key == Option.controlPlayer2.moveLeft:
+                            self.player2.collider.velocity[0] = -5
+                        if event.key == Option.controlPlayer2.moveRight:
+                            self.player2.collider.velocity[0] = 5
+                        if event.key == Option.controlPlayer2.jump:
+                            if self.player2.collider.isFloored:
+                                self.player2.collider.velocity[1] = -30
+
+                if event.type == pygame.KEYUP:
+                    if self.player1.state == 'Move':
+                        if event.key == Option.controlPlayer1.moveLeft:
+                            self.player1.collider.velocity[0] = 0
+                        if event.key == Option.controlPlayer1.moveRight:
+                            self.player1.collider.velocity[0] = 0
+
+                    if self.player2.state == 'Move':
+                        if event.key == Option.controlPlayer2.moveLeft:
+                            self.player2.collider.velocity[0] = 0
+                        if event.key == Option.controlPlayer2.moveRight:
+                            self.player2.collider.velocity[0] = 0
+
+            # Update looking direction
+            if self.player1.collider.isFloored:
+                if self.player1.collider.velocity[0] > 0:
+                    self.player1.lookingDirection = 1
+                elif self.player1.collider.velocity[0] < 0:
+                    self.player1.lookingDirection = -1
+
+            if self.player2.collider.isFloored:
+                if self.player2.collider.velocity[0] > 0:
+                    self.player2.lookingDirection = 1
+                elif self.player2.collider.velocity[0] < 0:
+                    self.player2.lookingDirection = -1
+
+            # Update colliders
+            self.player1.collider.move()
+            self.player2.collider.move()
+
+            # Update sprites
+            if self.player1.state == 'Move':
+                if self.player1.collider.isFloored:
+                    if self.player1.lookingDirection == 1:
+                        self.player1.currentSprite = self.player1.moveSprite
+                    elif self.player1.lookingDirection == -1:
+                        self.player1.currentSprite = self.player1.moveSpriteInv
+                else:
+                    if self.player1.lookingDirection == 1:
+                        self.player1.currentSprite = self.player1.jumpSprite
+                    elif self.player1.lookingDirection == -1:
+                        self.player1.currentSprite = self.player1.jumpSpriteInv
+
+            if self.player2.state == 'Move':
+                if self.player2.collider.isFloored:
+                    if self.player2.lookingDirection == 1:
+                        self.player2.currentSprite = self.player2.moveSprite
+                    elif self.player2.lookingDirection == -1:
+                        self.player2.currentSprite = self.player2.moveSpriteInv
+                else:
+                    if self.player2.lookingDirection == 1:
+                        self.player2.currentSprite = self.player2.jumpSprite
+                    elif self.player2.lookingDirection == -1:
+                        self.player2.currentSprite = self.player2.jumpSpriteInv
+
+            # Draw the scenariod
             self.display.blit(self.scenario, (0, 0))
-            self.display.blit(self.player1.currentSprite, self.player1.position)
-            self.display.blit(self.player2.currentSprite, self.player2.position)
+            self.display.blit(self.player1.currentSprite, self.player1.collider.position)
+            self.display.blit(self.player2.currentSprite, self.player2.collider.position)
 
             # Render all
             pygame.display.flip()

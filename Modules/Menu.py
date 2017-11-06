@@ -180,7 +180,7 @@ class Menu:
                         self.player2Character = self.characters[clickedCharacterButtonIndex]
                 elif buttonStart.mouseInBonudaries():
                     if (self.player1Character['name'] != '' and self.player2Character['name'] != ''):
-                        match = Physics(self.display, selfcurrentDisplayWidth, self.currentDisplayHeight, self.player1Character, self.player2Character)
+                        match = Physics(self.display, self.currentDisplayWidth, self.currentDisplayHeight, self.player1Character, self.player2Character)
                         match.startFight()
                         self.gameMenu()
 
