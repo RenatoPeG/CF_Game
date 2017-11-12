@@ -1,7 +1,10 @@
+import math
 import pygame
 import sys
+from Modules.Color import *
 from Modules.Music import *
 from Modules.Option import *
+from Modules.Text import *
 pygame.init()
 
 class Physics():
@@ -25,6 +28,15 @@ class Physics():
         # Set global scale
         self.globalScale = 1
 
+        # Set display
+        self.display = display
+
+        # Set clock
+        self.clock = pygame.time.Clock()
+
+        # Set match timer
+        self.timer = self.Timer(Option.timeLimit, self.display)
+        
         widthExpansion = self.currentDisplayWidth / Physics.baseDisplayWidth
         heightExpansion = self.currentDisplayHeight / Physics.baseDisplayHeight
 
@@ -40,17 +52,21 @@ class Physics():
                 self.globalScale = heightExpansion
 
         # Set the players that will fight
-        self.player1 = self.Player(player1Character, pygame.math.Vector2(100, 0), 1)
-        self.player2 = self.Player(player2Character, pygame.math.Vector2(self.currentDisplayWidth - 200, 0), -1)
+        self.player1 = self.Player(player1Character, pygame.math.Vector2(100, 0), 1, self.display)
+        self.player2 = self.Player(player2Character, pygame.math.Vector2(self.currentDisplayWidth - 200, 0), -1, self.display)
+
+        # Set all the status bars
+        self.player1HealthBar = self.Bar(100, Color.red, 50, 50, (Physics.baseDisplayWidth / 2) - 150, 30, 'left', self.display)
+        self.player2HealthBar = self.Bar(100, Color.red, Physics.baseDisplayWidth - ((Physics.baseDisplayWidth / 2) - 150) - 50, 50, (Physics.baseDisplayWidth / 2) - 150, 30, 'right', self.display)
+        self.player1StaminaBar = self.Bar(0, Color.blue, 50, 85, (Physics.baseDisplayWidth / 2) - 200, 20, 'left', self.display)
+        self.player2StaminaBar = self.Bar(0, Color.blue, Physics.baseDisplayWidth - ((Physics.baseDisplayWidth / 2) - 200) - 50, 85, (Physics.baseDisplayWidth / 2) - 200, 20, 'right', self.display)
+
+        # Set players' projectiles
+        self.player1Projectile = self.Projectile(player1Character, self.player2, self.display)
+        self.player2Projectile = self.Projectile(player2Character, self.player1, self.display)
 
         # Set the scenario
         self.scenario = pygame.image.load(Physics.scenariosSpritesFolder + 'plaza_mayor.png').convert()
-
-        # Set display
-        self.display = display
-
-        # Set clock
-        self.clock = pygame.time.Clock()
 
         # Play music and set volume
         Music.playSong(2)
@@ -96,11 +112,165 @@ class Physics():
             # Update position
             self.position = self.position + self.velocity
 
-    class Player():
-        def __init__(self, character, initialPosition, lookingDirection):
-            self.character = character
+    class Bar():
+        def __init__(self, startingValue, color, x, y, width, height, align, display):
+            self.value = startingValue
+            self.color = color
+            self.x = x
+            self.y = y
+            self.width = width
+            self.height = height
+            self.align = align
+            self.display = display
 
-            # Player state (by default it's Move, other states are: Attack, Damage, Death)
+        def increaseValue(self, increment):
+            if (self.value + increment > 100):
+                self.value = 100
+            else:
+                self.value = self.value + increment
+
+        def decreaseValue(self, decrement):
+            if (self.value - decrement < 0):
+                self.value = 0
+            else:
+                self.value = self.value - decrement
+
+        def render(self):
+            filledDistance = math.floor((self.width - 4) * (self.value / 100))
+            pygame.draw.rect(self.display, Color.black, (self.x, self.y, self.width, self.height))
+            if self.align == 'left':
+                pygame.draw.rect(self.display, self.color, (self.x + 2, self.y + 2, filledDistance, self.height - 4))
+            elif self.align == 'right':
+                pygame.draw.rect(self.display, self.color, (self.x + self.width - filledDistance - 2, self.y + 2, filledDistance, self.height - 4))
+
+    class Timer():
+        def __init__(self, startingValue, display):
+            self.value = startingValue
+            self.remainingTicks = self.value * 3600
+            self.display = display
+
+        def tick(self, ticks):
+            if (self.remainingTicks - ticks < 0):
+                self.remainingTicks = 0
+            else:
+                self.remainingTicks = self.remainingTicks - ticks
+            self.value = math.ceil(self.remainingTicks / 3600)
+
+        def render(self):
+            x = Physics.baseDisplayWidth / 2
+            y = 40
+            width = 80
+            height = 80
+            pygame.draw.rect(self.display, Color.black, (x - (width / 2), y, width, height))
+            Text.renderLabel(str(self.value), 'white', 'dolphins.ttf', 36, x, y + (height / 2), '', self.display)
+
+    class Cooldown():
+        def __init__(self, duration):
+            self.duration = duration
+            self.remainingTicks = 0
+            self.isReady = True
+
+        def start(self):
+            self.remainingTicks = self.duration * 3600
+            self.isReady = False
+
+        def tick(self, ticks):
+            if (self.remainingTicks - ticks < 0):
+                self.remainingTicks = 0
+            else:
+                self.remainingTicks = self.remainingTicks - ticks
+            if self.remainingTicks == 0:
+                self.isReady = True
+
+    class Action():
+        def __init__(self, name, duration):
+            self.name = name
+            self.duration = duration
+            self.remainingTicks = 0
+            self.done = True
+
+        def start(self):
+            self.remainingTicks = self.duration * 3600
+            self.done = False
+
+        def tick(self, ticks):
+            if (self.remainingTicks - ticks < 0):
+                self.remainingTicks = 0
+            else:
+                self.remainingTicks = self.remainingTicks - ticks
+            if self.remainingTicks == 0:
+                self.done = True
+
+        def abort(self):
+            self.remainingTicks = 0
+            self.done = True
+
+    class Projectile():
+        # Constants
+        speed = 10
+
+        def __init__(self, character, targetPlayer, display):
+            self.targetPlayer = targetPlayer
+            self.display = display
+            self.active = False
+            self.position = pygame.math.Vector2(0, 0)
+            self.shootingDirection = 1
+            self.isCollidingTargetPlayer = False
+
+            # Load the sprite
+            filePrefix = Physics.charactersSpritesFolder + character['name'] + "/" + character['asset_prefix']
+            self.sprite = pygame.image.load(filePrefix + '_projectile.png').convert_alpha()
+
+            # Get projectile dimentions
+            self.width = self.sprite.get_rect().size[0]
+            self.height = self.sprite.get_rect().size[1]
+
+        def fire(self, initialPosition, shootingDirection):
+            self.position = initialPosition
+            self.shootingDirection = shootingDirection
+            self.position[1] = self.position[1] - math.floor(self.height / 2)
+            self.active = True
+
+        def move(self):
+            self.position[0] = self.position[0] + (self.shootingDirection * Physics.Projectile.speed)
+
+            xCollision = False
+            if (self.position[0] > self.targetPlayer.collider.position[0]):
+                if ((self.targetPlayer.collider.position[0] + self.targetPlayer.collider.width) < self.position[0]):
+                    xCollision = True
+            elif (self.targetPlayer.collider.position[0] > self.position[0]):
+                if ((self.position[0] + self.width) < self.targetPlayer.collider.position[0]):
+                    xCollision = True
+
+            yCollision = False
+            if (self.position[1] > self.targetPlayer.collider.position[1]):
+                if ((self.targetPlayer.collider.position[1] + self.targetPlayer.collider.height) < self.position[1]):
+                    yCollision = True
+            elif (self.targetPlayer.collider.position[1] > self.position[1]):
+                if ((self.position[1] + self.height) < self.targetPlayer.collider.position[1]):
+                    yCollision = True
+
+            self.isCollidingTargetPlayer = xCollision and yCollision
+
+            if ((self.position[0] + self.width) < 0 or self.position[0] > Physics.baseDisplayWidth):
+                self.active = False
+            
+        def render(self):
+            self.display.blit(self.sprite, self.position)
+
+    class Beam():
+        def __init__(self):
+            pass
+
+        def abort(self):
+            pass
+            
+    class Player():
+        def __init__(self, character, initialPosition, lookingDirection, display):
+            self.character = character
+            self.display = display
+
+            # Player state (by default it's Move; other states are: Attack, Damage, Death)
             self.state = 'Move'
 
             # Initialize sprites
@@ -115,6 +285,14 @@ class Physics():
             # Initialize collider
             self.collider = Physics.Collider(self.moveSprite.get_rect().size[0], self.moveSprite.get_rect().size[1], initialPosition)
 
+            # Initialize cooldowns
+            self.primaryBasicAttackCooldown = Physics.Cooldown(0.5)
+
+            # Initialize actions
+            self.primaryBasicAttackAction = Physics.Action('primaryBasicAttack', 0.25)
+
+            self.playerCurrentAction = None
+
             # Player looking direction
             self.lookingDirection = lookingDirection
 
@@ -122,8 +300,21 @@ class Physics():
                 self.currentSprite = self.moveSprite
             elif self.lookingDirection == -1:
                 self.currentSprite = self.moveSpriteInv
+
+        def render(self):
+            self.display.blit(self.currentSprite, self.collider.position)
+
+        def attack(self, attackAction):
+            self.playerCurrentAction = attackAction
+            self.playerCurrentAction.start()
+
+        def takeDamage(self):
+            pass
             
     def startFight(self):
+
+        self.player1Projectile.fire(pygame.math.Vector2(50, 50), 1)
+
         while True:
             # Analize events
             for event in pygame.event.get():
@@ -146,8 +337,11 @@ class Physics():
                     if self.player1.collider.isFloored:
                         self.player1.collider.velocity[1] = -30
                 if keysPressed[Option.controlPlayer1.primaryBasicAttack]:
-                    pass
-
+                    if self.player1.primaryBasicAttackCooldown.isReady:
+                        self.player1.collider.velocity[0] = 0
+                        self.player1.collider.velocity[1] = -15
+                        self.player1.primaryBasicAttackCooldown.start()
+                        
             if self.player2.state == 'Move':
                 if keysPressed[Option.controlPlayer2.moveLeft] or keysPressed[Option.controlPlayer2.moveRight]:
                     if keysPressed[Option.controlPlayer2.moveLeft]:
@@ -177,6 +371,12 @@ class Physics():
             self.player1.collider.move()
             self.player2.collider.move()
 
+            # Update projectiles
+            if self.player1Projectile.active:
+                self.player1Projectile.move()
+            if self.player2Projectile.active:
+                self.player2Projectile.move()
+                
             # Update sprites
             if self.player1.state == 'Move':
                 if self.player1.collider.isFloored:
@@ -202,10 +402,27 @@ class Physics():
                     elif self.player2.lookingDirection == -1:
                         self.player2.currentSprite = self.player2.jumpSpriteInv
 
-            # Draw the scenariod
+            # Update timer
+            self.timer.tick(60)
+
+            # Update cooldowns
+            self.player1.primaryBasicAttackCooldown.tick(60)
+
+            # Draw the scenario
             self.display.blit(self.scenario, (0, 0))
-            self.display.blit(self.player1.currentSprite, self.player1.collider.position)
-            self.display.blit(self.player2.currentSprite, self.player2.collider.position)
+            self.player1HealthBar.render()
+            self.player2HealthBar.render()
+            self.player1StaminaBar.render()
+            self.player2StaminaBar.render()
+            self.timer.render()
+
+            self.player1.render()
+            self.player2.render()
+
+            if self.player1Projectile.active:
+                self.player1Projectile.render()
+            if self.player2Projectile.active:
+                self.player2Projectile.render()
 
             # Render all
             pygame.display.flip()
