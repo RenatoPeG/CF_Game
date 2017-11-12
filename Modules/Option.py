@@ -11,8 +11,8 @@ class Option():
             self.jump = jump
             self.primaryBasicAttack = primaryBasicAttack
             self.secondaryBasicAttack = secondaryBasicAttack
-            self.basicPower = [self.moveUp, self.moveDown, self.primaryBasicAttack]
-            self.specialPower = [self.moveUp, self.moveDown, self.secondaryBasicAttack, self.moveRight]
+            self.basicPower = [self.moveUp, self.primaryBasicAttack]
+            self.specialPower = [self.moveUp, self.secondaryBasicAttack]
 
         def updateBasicSpecialPower(self):
             self.basicPower = [self.moveUp, self.moveDown, self.primaryBasicAttack]
