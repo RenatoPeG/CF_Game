@@ -37,7 +37,7 @@ class Physics():
         self.clock = pygame.time.Clock()
 
         # Set match timer
-        self.timer = self.Timer(Option.timeLimit, self.display)
+        self.timer = self.Timer(int(Option.timeLimit), self.display)
         
         widthExpansion = self.currentDisplayWidth / Physics.baseDisplayWidth
         heightExpansion = self.currentDisplayHeight / Physics.baseDisplayHeight

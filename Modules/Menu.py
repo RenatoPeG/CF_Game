@@ -172,6 +172,9 @@ class Menu:
 
             if mousebuttonupTriggered:
                 if buttonBack.mouseInBonudaries():
+                    # Wipe the players
+                    self.player1Character = {'name': ''}
+                    self.player2Character = {'name': ''}
                     self.gameMenu()
                 elif characterButtonClicked:
                     if (self.player1Character['name'] == ''):
@@ -180,7 +183,7 @@ class Menu:
                         self.player2Character = self.characters[clickedCharacterButtonIndex]
                 elif buttonStart.mouseInBonudaries():
                     if (self.player1Character['name'] != '' and self.player2Character['name'] != ''):
-                        match = Physics(self.display, self.currentDisplayWidth, self.currentDisplayHeight, self.player1Character, self.player2Character, 'plaza_mayor')
+                        match = Physics(self.display, self.currentDisplayWidth, self.currentDisplayHeight, self.player1Character, self.player2Character, 'machu_picchu')
                         match.startFight()
                         # When match is over, wipe the players and return to game menu
                         self.player1Character = {'name': ''}
