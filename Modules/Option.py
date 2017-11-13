@@ -15,8 +15,8 @@ class Option():
             self.specialPower = [self.moveUp, self.secondaryBasicAttack]
 
         def updateBasicSpecialPower(self):
-            self.basicPower = [self.moveUp, self.moveDown, self.primaryBasicAttack]
-            self.specialPower = [self.moveUp, self.moveDown, self.secondaryBasicAttack, self.moveRight]
+            self.basicPower = [self.moveUp, self.primaryBasicAttack]
+            self.specialPower = [self.moveUp, self.secondaryBasicAttack]
 
     class Toggler():
         def __init__(self, textIfTrue, textIfFalse, color, fontFamily, fontSize, backgroundColor, backgroundColorHover, x, y, width, height, toggled, display):

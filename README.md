@@ -5,6 +5,7 @@
 
 Para ejecutar el juego seguir las siguientes instrucciones:
 - En primer lugar asegurese de que se esté ejecutando el servidor
+- Instalar pygame con el comando `py -m pip install pygame --user`
 - Clonar el repositorio en una carpeta local
 - Situarse en la carpeta Vendor y ejecutar el comando `git clone git://github.com/requests/requests.git`
 - Situarse en la carpeta Vendor/requests y ejecutar el comando `pip install .`
