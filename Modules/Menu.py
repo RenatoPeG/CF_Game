@@ -185,6 +185,9 @@ class Menu:
                         # When match is over, wipe the players and return to game menu
                         self.player1Character = {'name': ''}
                         self.player2Character = {'name': ''}
+                        # Also set the music back to the menu track
+                        Music.playSong(1)
+                        Music.setVolume(Option.volume)
                         self.gameMenu()
 
             # Refresh
