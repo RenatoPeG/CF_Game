@@ -52,6 +52,9 @@ class Menu:
         self.player1Character = {'name': ''}
         self.player2Character = {'name': ''}
 
+        # Current scenario being chosen
+        self.scenario = {'name': ''}
+
         # Current player being configured in the configure player menu
         self.configuredPlayer = 1
 
@@ -59,7 +62,8 @@ class Menu:
         self.configureKeyId = None
 
     def gameMenu(self):
-        while True:
+        gameMenuLoop = True
+        while gameMenuLoop:
             # Analize events
             mousebuttonupTriggered = False
             for event in pygame.event.get():
@@ -91,6 +95,7 @@ class Menu:
                 elif buttonMusic.mouseInBonudaries():
                     Music.toggleMusic()
                 elif buttonQuit.mouseInBonudaries():
+                    gameMenuLoop = False
                     pygame.quit()
                     sys.exit()
                 elif buttonOptions.mouseInBonudaries():
@@ -101,7 +106,8 @@ class Menu:
             self.clock.tick(20)
 
     def gameCharacterSelection(self):
-        while True:
+        gameCharacterSelectionLoop = True
+        while gameCharacterSelectionLoop:
             # Analize events
             mousebuttonupTriggered = False
             for event in pygame.event.get():
@@ -157,7 +163,7 @@ class Menu:
             Text.renderLabel('VS', 'white', 'dolphins.ttf', 65, self.currentDisplayWidth / 2, 550, '', self.display)
             Text.renderLabel(self.player2Character['name'], 'white', 'dolphins.ttf', 50, self.currentDisplayWidth * 3 / 4, 550, '', self.display)
 
-            buttonStart = Button('COMENZAR', 'white', 'dolphins.ttf', 36, Color.black, Color.brightOrange, (self.currentDisplayWidth / 2) - 150, 600, 300, 75, self.display)
+            buttonContinue = Button('CONTINUAR', 'white', 'dolphins.ttf', 36, Color.black, Color.brightOrange, (self.currentDisplayWidth / 2) - 150, 600, 300, 75, self.display)
 
             # Listen for button clicked
             characterButtonClicked = False
@@ -175,30 +181,119 @@ class Menu:
                     # Wipe the players
                     self.player1Character = {'name': ''}
                     self.player2Character = {'name': ''}
-                    self.gameMenu()
+                    gameCharacterSelectionLoop = False
                 elif characterButtonClicked:
                     if (self.player1Character['name'] == ''):
                         self.player1Character = self.characters[clickedCharacterButtonIndex]
                     elif (self.player2Character['name'] == ''):
                         self.player2Character = self.characters[clickedCharacterButtonIndex]
-                elif buttonStart.mouseInBonudaries():
+                elif buttonContinue.mouseInBonudaries():
                     if (self.player1Character['name'] != '' and self.player2Character['name'] != ''):
-                        match = Physics(self.display, self.currentDisplayWidth, self.currentDisplayHeight, self.player1Character, self.player2Character, 'machu_picchu')
+                        self.gameScenarioSelection()
+                        gameCharacterSelectionLoop = False
+
+            # Refresh
+            pygame.display.update()
+            self.clock.tick(20)
+
+    def gameScenarioSelection(self):
+        gameScenarioSelectionLoop = True
+        while gameScenarioSelectionLoop:
+            # Analize events
+            mousebuttonupTriggered = False
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.MOUSEBUTTONUP:
+                    mousebuttonupTriggered = True
+
+            # Draw background
+            self.display.fill(Color.white)
+            pygame.draw.rect(self.display, Color.black, (20, 20, self.currentDisplayWidth - 40, self.currentDisplayHeight - 40))
+
+            # List scenarios
+            scenarioButtons = []
+            if (len(self.scenarios) < 2):
+                scenarioButtons.append(Button(self.scenarios[0]['name'], 'white', 'dolphins.ttf', 36, Color.black, Color.red, (self.currentDisplayWidth / 2) - 150, 200, 300, 50, self.display))
+            else:
+                rowIndex = 0;
+                columnIndex = 0;
+                for i in range(0, len(self.scenarios) - 1):
+                    scenario = self.scenarios[i]
+                    if (columnIndex == 2):
+                        rowIndex = rowIndex + 1
+                        columnIndex = 0
+                    if (columnIndex == 0):
+                        x = (self.currentDisplayWidth / 4) - 150
+                    elif (columnIndex == 1):
+                        x = (self.currentDisplayWidth * 3 / 4) - 150
+
+                    y = 150 + (rowIndex * 100)
+
+                    scenarioButtons.append(Button(scenario['name'], 'white', 'dolphins.ttf', 36, Color.black, Color.red, x, y, 300, 50, self.display))
+
+                    columnIndex = columnIndex + 1
+                scenario = self.scenarios[len(self.scenarios) - 1]
+                if (len(self.scenarios) % 2 == 0):
+                    x = (self.currentDisplayWidth * 3 / 4) - 150
+                    y = 150 + (rowIndex * 100)
+                    scenarioButtons.append(Button(scenario['name'], 'white', 'dolphins.ttf', 36, Color.black, Color.red, x, y, 300, 50, self.display))
+                else:
+                    rowIndex = rowIndex + 1
+                    x = (self.currentDisplayWidth / 2) - 150
+                    y = 150 + (rowIndex * 100)
+                    scenarioButtons.append(Button(scenario['name'], 'white', 'dolphins.ttf', 36, Color.black, Color.red, x, y, 300, 50, self.display))
+
+            # Draw rest of menu content
+            buttonBack = Button('Regresar', 'white', 'dolphins.ttf', 20, Color.black, Color.brightOrange, 30, 30, 150, 30, self.display)
+
+            Text.renderLabel('Selección de escenario', 'white', 'dolphins.ttf', 70, self.currentDisplayWidth / 2, 100, '', self.display)
+
+            Text.renderLabel(self.scenario['name'], 'white', 'dolphins.ttf', 65, self.currentDisplayWidth / 2, 550, '', self.display)
+
+            buttonStart = Button('COMENZAR', 'white', 'dolphins.ttf', 36, Color.black, Color.brightOrange, (self.currentDisplayWidth / 2) - 150, 600, 300, 75, self.display)
+
+            # Listen for button clicked
+            scenarioButtonClicked = False
+            clickedScenarioButtonIndex = 0
+            index = 0
+            while (not scenarioButtonClicked and (index < len(scenarioButtons))):
+                if scenarioButtons[index].mouseInBonudaries():
+                    clickedScenarioButtonIndex = index
+                    scenarioButtonClicked = True
+                else:
+                    index = index + 1
+
+            if mousebuttonupTriggered:
+                if buttonBack.mouseInBonudaries():
+                    self.player1Character = {'name': ''}
+                    self.player2Character = {'name': ''}
+                    gameCharacterSelectionLoop = False
+                elif scenarioButtonClicked:
+                    if (self.scenario['name'] == ''):
+                        self.scenario = self.scenarios[clickedScenarioButtonIndex]
+                elif buttonStart.mouseInBonudaries():
+                    if self.scenario['name'] != '':
+                        match = Physics(self.display, self.currentDisplayWidth, self.currentDisplayHeight, self.player1Character, self.player2Character, self.scenario['asset_prefix'])
                         match.startFight()
-                        # When match is over, wipe the players and return to game menu
+                        # When match is over, wipe the players and the scenario
                         self.player1Character = {'name': ''}
                         self.player2Character = {'name': ''}
+                        self.scenario = {'name': ''}
                         # Also set the music back to the menu track
                         Music.playSong(1)
                         Music.setVolume(Option.volume)
-                        self.gameMenu()
+                        # Return to game menu
+                        gameScenarioSelectionLoop = False
 
             # Refresh
             pygame.display.update()
             self.clock.tick(20)
 
     def gameConfigurePlayer(self):
-        while True:
+        gameConfigurePlayerLoop = True
+        while gameConfigurePlayerLoop:
              # Analize events
             mousebuttonupTriggered = False
             keydownTriggered = False
@@ -317,7 +412,7 @@ class Menu:
             if mousebuttonupTriggered:
                 if buttonBack.mouseInBonudaries():
                     self.configureKeyId = None
-                    self.gameOptions()
+                    gameConfigurePlayerLoop = False
                 elif buttonDefaults.mouseInBonudaries():
                     # Player controls
                     if self.configuredPlayer == 1:
@@ -425,7 +520,8 @@ class Menu:
             self.clock.tick(20)
 
     def gameOptions(self):
-        while True:
+        gameOptionsLoop = True
+        while gameOptionsLoop:
             # Analize events
             mousebuttonupTriggered = False
             for event in pygame.event.get():
@@ -467,7 +563,7 @@ class Menu:
             # Listen for button clicked
             if mousebuttonupTriggered:
                 if buttonBack.mouseInBonudaries():
-                    self.gameMenu()
+                    gameOptionsLoop = False
                 elif buttonDefaults.mouseInBonudaries():
                     # Fullscreen
                     Option.fullscreen = False
