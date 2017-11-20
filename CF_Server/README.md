@@ -12,6 +12,11 @@ pip install djangorestframework
 python manage.py runserver
 ```
 
+## Credenciales
+Las credenciales para administrador de Django son las siguientes
+Nombre de usuario: `admin`
+Contraseña: `insoft2017`
+
 ## Sobre el trabajo
 
 Para una mejor referencia sobre este proyecto consultar el README del repositorio del juego.
