@@ -7,10 +7,10 @@
 (6) Compile game into .exe file
 (7) Record gameplay video and upload it to YouTube
 
-0 > Juan Marroquin
+0 > Juan Marroquin, Gianfranco Rosales
 1 > Renato Córdova
 2 > Renato Pérez
-3 > Gianframco Rosales
+3 > Gianfranco Rosales
 4 > Juan Marroquin
 5 > Christian Changa
 6 > Renato Pérez
