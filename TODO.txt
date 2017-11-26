@@ -1,2 +1,17 @@
-- Implement rounds
-- Implement special power
+(0) Remaining sprites
+(1) Implement rounds
+(2) Implement special power
+(3) Implement highscores
+(4) Perform unit tests
+(5) Deploy server to cloud
+(6) Compile game into .exe file
+(7) Record gameplay video and upload it to YouTube
+
+0 > Juan Marroquin
+1 > Renato Córdova
+2 > Renato Pérez
+3 > Gianframco Rosales
+4 > Juan Marroquin
+5 > Christian Changa
+6 > Renato Pérez
+7 > Renato Córdova, Gianfranco Rosales
