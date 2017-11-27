@@ -1,5 +1,5 @@
-(0) Remaining sprites
-(1) Implement rounds
+(0) Remaining sprites [DONE]
+(1) Implement rounds [DONE]
 (2) Implement special power
 (3) Implement highscores
 (4) Perform unit tests
