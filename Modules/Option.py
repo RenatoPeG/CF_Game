@@ -18,31 +18,6 @@ class Option():
             self.basicPower = [self.moveUp, self.primaryBasicAttack]
             self.specialPower = [self.moveUp, self.secondaryBasicAttack]
 
-    class Toggler():
-        def __init__(self, textIfTrue, textIfFalse, color, fontFamily, fontSize, backgroundColor, backgroundColorHover, x, y, width, height, toggled, display):
-            self.x = x 
-            self.y = y
-            self.width = width
-            self.height = height
-            
-            mousePos = pygame.mouse.get_pos()
-            if self.x + self.width > mousePos[0] > self.x and self.y + self.height > mousePos[1] > self.y:
-                pygame.draw.rect(display, backgroundColorHover, (self.x, self.y, self.width, self.height))
-            else:
-                pygame.draw.rect(display, backgroundColor, (self.x, self.y, self.width, self.height))
-
-            text = None
-            if toggled:
-                text = textIfTrue
-            else:
-                text = textIfFalse
-
-            Text.renderLabel(text, color, fontFamily, fontSize, (self.x + (self.width / 2)), (self.y + (self.height / 2)), '', display)
-
-        def mouseInBonudaries(self):
-            mousePos = pygame.mouse.get_pos()
-            return (self.x + self.width > mousePos[0] > self.x and self.y + self.height > mousePos[1] > self.y)
-
     class NumericUpDown():
         def __init__(self, text, color, fontFamily, fontSize, backgroundColor, backgroundColorHover, x, y, height, display):
             self.x = x 
@@ -83,7 +58,6 @@ class Option():
             return (self.x + 160 > mousePos[0] > self.x + 135 and self.y + self.height > mousePos[1] > self.y)
 
     # Static variables
-    fullscreen = False
     volume = 0.50
     timeLimit = 180
     rounds = 3

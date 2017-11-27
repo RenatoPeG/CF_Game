@@ -14,21 +14,9 @@ pygame.init()
 
 class Menu:
     def __init__(self):
-        # Windows fullscreen fix
-        ctypes.windll.user32.SetProcessDPIAware()
-
-        # Default display settings
-        self.defaultDisplayWidth = 1200
-        self.defaultDisplayHeight = 700
-
-        # Get monitor size info
-        displayInfo = pygame.display.Info()
-        self.monitorScreenWidth = displayInfo.current_w
-        self.monitorScreenHeight = displayInfo.current_h
-
         # Set display starting configuration
-        self.currentDisplayWidth = self.defaultDisplayWidth
-        self.currentDisplayHeight = self.defaultDisplayHeight
+        self.currentDisplayWidth = 1200
+        self.currentDisplayHeight = 700
 
         # Set display
         self.display = pygame.display.set_mode((self.currentDisplayWidth, self.currentDisplayHeight))
@@ -269,7 +257,7 @@ class Menu:
                 if buttonBack.mouseInBonudaries():
                     self.player1Character = {'name': ''}
                     self.player2Character = {'name': ''}
-                    gameCharacterSelectionLoop = False
+                    gameScenarioSelectionLoop = False
                 elif scenarioButtonClicked:
                     if (self.scenario['name'] == ''):
                         self.scenario = self.scenarios[clickedScenarioButtonIndex]
@@ -542,9 +530,6 @@ class Menu:
 
             Text.renderLabel('Opciones', 'white', 'dolphins.ttf', 70, self.currentDisplayWidth / 2, 100, '', self.display)
 
-            Text.renderLabel('Pantalla completa', 'white', 'dolphins.ttf', 36, 50, 200, 'topleft', self.display)
-            togglerFullscreen = Option.Toggler('Sí', 'No', 'white', 'dolphins.ttf', 36, Color.black, Color.brightOrange, self.currentDisplayWidth - 200, 200, 150, 30, Option.fullscreen, self.display)
-
             Text.renderLabel('Volumen', 'white', 'dolphins.ttf', 36, 50, 275, 'topleft', self.display)
             numericUpDownVolume = Option.NumericUpDown(str(int(Option.volume * 100)) + '%', 'white', 'dolphins.ttf', 36, Color.brightRed, Color.red, self.currentDisplayWidth - 205, 275, 30, self.display)
 
@@ -565,11 +550,6 @@ class Menu:
                 if buttonBack.mouseInBonudaries():
                     gameOptionsLoop = False
                 elif buttonDefaults.mouseInBonudaries():
-                    # Fullscreen
-                    Option.fullscreen = False
-                    self.currentDisplayWidth = self.defaultDisplayWidth
-                    self.currentDisplayHeight = self.defaultDisplayHeight
-                    pygame.display.set_mode((self.currentDisplayWidth, self.currentDisplayHeight))
                     # Volume
                     Option.volume = 0.50
                     Music.setVolume(Option.volume)
@@ -577,16 +557,6 @@ class Menu:
                     Option.timeLimit = 180
                     # Rounds
                     Option.rounds = 3
-                elif togglerFullscreen.mouseInBonudaries():
-                    Option.fullscreen = not Option.fullscreen
-                    if Option.fullscreen:
-                        self.currentDisplayWidth = self.monitorScreenWidth
-                        self.currentDisplayHeight = self.monitorScreenHeight
-                        pygame.display.set_mode((self.currentDisplayWidth, self.currentDisplayHeight), pygame.FULLSCREEN)
-                    else:
-                        self.currentDisplayWidth = self.defaultDisplayWidth
-                        self.currentDisplayHeight = self.defaultDisplayHeight
-                        pygame.display.set_mode((self.currentDisplayWidth, self.currentDisplayHeight))
                 elif numericUpDownVolume.mouseAboveLeftArrow():
                     if round(Option.volume, 2) >= 0.05:
                         Option.volume -= 0.05
