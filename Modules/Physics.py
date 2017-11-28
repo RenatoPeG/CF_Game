@@ -240,17 +240,89 @@ class Physics():
             self.display.blit(self.sprite, self.position)
 
     class Beam():
-        def __init__(self):
-            pass
+        # Constants
+        damage = 3
+        damageInstanceTicksInterval = 300
+        duration = 1.5
+
+        def __init__(self, character, display):
+            self.display = display
+            self.active = False
+            self.position = pygame.math.Vector2(0, 0)
+            self.shootingDirection = 1
+            self.remainingTicksForNextDamageInstance = 0
+            self.remainingTicksToEnd = 0
+            self.isDamaging = False
+
+            # Load the sprite
+            filePrefix = Physics.charactersSpritesFolder + character['name'] + "/" + character['asset_prefix']
+            self.beamSprite = pygame.image.load(filePrefix + '_beam.png').convert_alpha()
+            self.beamSpriteInv = pygame.image.load(filePrefix + '_beam_inv.png').convert_alpha()
+            self.sprite = self.beamSprite
+
+            # Get beam dimentions
+            self.width = self.sprite.get_rect().size[0]
+            self.height = self.sprite.get_rect().size[1]
+
+        def cast(self, initialPosition, shootingDirection):
+            self.position[0] = initialPosition[0]
+            self.position[1] = initialPosition[1] - math.floor(self.height / 2)
+            self.shootingDirection = shootingDirection
+            if self.shootingDirection == 1:
+                self.sprite = self.beamSprite
+            elif self.shootingDirection == -1:
+                self.sprite = self.beamSpriteInv
+                self.position[0] = self.position[0] - self.width
+
+            self.remainingTicksForNextDamageInstance = 0
+            self.remainingTicksToEnd = Physics.Beam.duration * 3600
+            self.active = True
+
+        def isCollidingTargetPlayer(self, targetPlayer):
+            xCollision = False
+            if self.shootingDirection == 1:
+                if targetPlayer.collider.position[0] > self.position[0]:
+                    xCollision = True
+            elif self.shootingDirection == -1:
+                if (self.position[0] + self.width) > targetPlayer.collider.position[0]:
+                    xCollision = True
+
+            yCollision = False
+            if (self.position[1] > targetPlayer.collider.position[1]):
+                if ((targetPlayer.collider.position[1] + targetPlayer.collider.height) > self.position[1]):
+                    yCollision = True
+            elif (targetPlayer.collider.position[1] > self.position[1]):
+                if ((self.position[1] + self.height) > targetPlayer.collider.position[1]):
+                    yCollision = True
+            return xCollision and yCollision
+
+        def tickAndDamage(self, ticks):
+            if self.remainingTicksForNextDamageInstance - ticks <= 0:
+                self.isDamaging = True
+                self.remainingTicksForNextDamageInstance = Physics.Beam.damageInstanceTicksInterval
+            else:
+                self.isDamaging = False
+                self.remainingTicksForNextDamageInstance = self.remainingTicksForNextDamageInstance - ticks
+
+            if self.remainingTicksToEnd - ticks <= 0:
+                self.active = False
+            else:
+                self.remainingTicksToEnd = self.remainingTicksToEnd - ticks
 
         def abort(self):
-            pass
+            self.isDamaging = False
+            self.remainingTicksForNextDamageInstance = 0
+            self.remainingTicksToEnd = 0
+
+        def render(self):
+            self.display.blit(self.sprite, self.position)
 
     class DamageInstance():
-        def __init__(self, width, height, damage):
+        def __init__(self, width, height, damage, staminaBonus):
             self.width = width
             self.height = height
             self.damage = damage
+            self.staminaBonus = staminaBonus
             
         def trigger(self, x, y, targetPlayer):
             xCollision = False
@@ -308,9 +380,12 @@ class Physics():
             # Initialize projectile
             self.projectile = Physics.Projectile(self.character, currentDisplayWidth, self.display)
 
+            # Initialize beam
+            self.beam = Physics.Beam(self.character, self.display)
+
             # Initialize damage instances
-            self.primaryBasicAttackDamageInstance = Physics.DamageInstance(self.moveSprite.get_rect().size[0] * 3 / 4, self.moveSprite.get_rect().size[1], 5)
-            self.secondaryBasicAttackDamageInstance = Physics.DamageInstance(self.moveSprite.get_rect().size[0] * 3 / 4, self.moveSprite.get_rect().size[1], 10)
+            self.primaryBasicAttackDamageInstance = Physics.DamageInstance(self.moveSprite.get_rect().size[0] * 3 / 4, self.moveSprite.get_rect().size[1], 2, 5)
+            self.secondaryBasicAttackDamageInstance = Physics.DamageInstance(self.moveSprite.get_rect().size[0] * 3 / 4, self.moveSprite.get_rect().size[1], 5, 10)
 
             # Initialize cooldowns
             self.primaryBasicAttackCooldown = Physics.Cooldown(0.5)
@@ -338,6 +413,7 @@ class Physics():
         def takeDamage(self, damage, direction):
             self.state = 'Damage'
             self.lookingDirection = -direction
+            self.beam.abort()
             self.healthBar.decreaseValue(damage)
             if self.healthBar.value > 0:
                 self.playerCurrentAction = self.painAction
@@ -347,6 +423,78 @@ class Physics():
             
         def render(self):
             self.display.blit(self.currentSprite, self.collider.position)
+
+    def playSpecialPowerAnimation(self, player):
+        firstShootDuration = 1
+        secondShootDuration = 1
+
+        remainingTicksToEndFirstShoot = firstShootDuration * 3600
+        while remainingTicksToEndFirstShoot > 0:
+            # Draw background
+            pygame.draw.rect(self.display, Color.black, (0, 100, self.currentDisplayWidth, self.currentDisplayHeight - 200))
+
+            # Draw the player
+            moveSprite = player.moveSprite
+            if player.lookingDirection == -1:
+                moveSprite = player.moveSpriteInv
+
+            ratio = moveSprite.get_rect().size[0] / moveSprite.get_rect().size[1]
+
+            moveSprite = pygame.transform.scale(moveSprite, (math.ceil((self.currentDisplayHeight - 200) * ratio), (self.currentDisplayHeight - 200)))
+
+            moveSpriteStartPositionX = self.currentDisplayWidth - moveSprite.get_rect().size[0]
+            moveSpriteFinishPositionX = 0
+            if player.lookingDirection == -1:
+                moveSpriteStartPositionX = 0
+                moveSpriteFinishPositionX = self.currentDisplayWidth - moveSprite.get_rect().size[0]
+
+            moveSpritePositionXOffset = math.ceil((moveSpriteFinishPositionX - moveSpriteStartPositionX) * (remainingTicksToEndFirstShoot / (firstShootDuration * 3600)))
+            moveSpriteCurrentPositionX = moveSpriteFinishPositionX - moveSpritePositionXOffset
+
+            moveSpriteCurrentPosition = pygame.math.Vector2(moveSpriteCurrentPositionX, 100)
+
+            self.display.blit(moveSprite, moveSpriteCurrentPosition)
+
+            # Render all
+            pygame.display.flip()
+
+            # Refresh
+            pygame.display.update()
+            remainingTicksToEndFirstShoot = remainingTicksToEndFirstShoot - 60
+            self.clock.tick(60)
+
+        remainingTicksToEndSecondShoot = secondShootDuration * 3600
+        flashingBackgroundFlag = False
+        while remainingTicksToEndSecondShoot > 0:
+            # Draw background
+            if flashingBackgroundFlag:
+                pygame.draw.rect(self.display, Color.black, (0, 100, self.currentDisplayWidth, self.currentDisplayHeight - 200))
+            else:
+                pygame.draw.rect(self.display, Color.white, (0, 100, self.currentDisplayWidth, self.currentDisplayHeight - 200))
+            flashingBackgroundFlag = not flashingBackgroundFlag
+
+            # Draw the player
+            specialPowerSprite = player.specialPowerSprite
+            if player.lookingDirection == -1:
+                specialPowerSprite = player.specialPowerSpriteInv
+
+            ratio = specialPowerSprite.get_rect().size[0] / specialPowerSprite.get_rect().size[1]
+
+            specialPowerSprite = pygame.transform.scale(specialPowerSprite, (math.ceil((self.currentDisplayHeight - 200) * ratio), (self.currentDisplayHeight - 200)))
+
+            specialPowerSpritePosition = pygame.math.Vector2(0, 100)
+            if player.lookingDirection == -1:
+                specialPowerSpritePosition = pygame.math.Vector2(self.currentDisplayWidth - specialPowerSprite.get_rect().size[0], 100)
+
+            self.display.blit(specialPowerSprite, specialPowerSpritePosition)
+
+            # Render all
+            pygame.display.flip()
+
+            # Refresh
+            pygame.display.update()
+            remainingTicksToEndSecondShoot = remainingTicksToEndSecondShoot - 60
+            self.clock.tick(60)
 
     def getRandomPreRoundMessage(self):
         preRoundMessages = ['¡Mecha, mecha, mecha!', 'Abóllense', '¡Saquense la mugre!']
@@ -433,7 +581,6 @@ class Physics():
                     # Refresh
                     pygame.display.update()
                     self.clock.tick(20)
-
             else:
                 preroundMessage = self.getRandomPreRoundMessage()
                 showRoundNumberCooldown.start()
@@ -494,7 +641,17 @@ class Physics():
                                 self.player1.staminaBar.decreaseValue(5)
                                 self.player1.basicPowerCooldown.start()
                         elif player1StartSpecialPower:
-                            pass
+                            if not self.player1.beam.active and self.player1.specialPowerCooldown.isReady and self.player1.collider.isFloored and (self.player1.staminaBar.value == 100):
+                                self.playSpecialPowerAnimation(self.player1)
+                                player1BeamInitialPositionX = self.player1.collider.position[0] + (self.player1.collider.width / 2)
+                                player1BeamInitialPositionY = self.player1.collider.position[1] + (self.player1.collider.height / 2)
+                                player1BeamInitialPositionVector = pygame.math.Vector2(player1BeamInitialPositionX, player1BeamInitialPositionY)
+                                self.player1.beam.cast(player1BeamInitialPositionVector, self.player1.lookingDirection)
+                                self.player1.playerCurrentAction = self.player1.specialPowerAction
+                                self.player1.playerCurrentAction.start()
+                                self.player1.state = 'Attack'
+                                self.player1.staminaBar.decreaseValue(100)
+                                self.player1.specialPowerCooldown.start()
                         elif keysPressed[Option.controlPlayer1.primaryBasicAttack]:
                             if self.player1.primaryBasicAttackCooldown.isReady and self.player1.collider.isFloored:
                                 primaryBasicAttackDamageInstanceX = 0
@@ -503,7 +660,7 @@ class Physics():
                                 elif self.player1.lookingDirection == -1:
                                     primaryBasicAttackDamageInstanceX = self.player1.collider.position[0] - (self.player1.collider.width / 4)
                                 if self.player1.primaryBasicAttackDamageInstance.trigger(primaryBasicAttackDamageInstanceX, self.player1.collider.position[1], self.player2):
-                                    self.player1.staminaBar.increaseValue(self.player1.primaryBasicAttackDamageInstance.damage)
+                                    self.player1.staminaBar.increaseValue(self.player1.primaryBasicAttackDamageInstance.staminaBonus)
                                     self.player2.takeDamage(self.player1.primaryBasicAttackDamageInstance.damage, self.player1.lookingDirection)
                                 self.player1.playerCurrentAction = self.player1.primaryBasicAttackAction
                                 self.player1.playerCurrentAction.start()
@@ -517,7 +674,7 @@ class Physics():
                                 elif self.player1.lookingDirection == -1:
                                     secondaryBasicAttackDamageInstanceX = self.player1.collider.position[0] - (self.player1.collider.width / 4)
                                 if self.player1.secondaryBasicAttackDamageInstance.trigger(secondaryBasicAttackDamageInstanceX, self.player1.collider.position[1], self.player2):
-                                    self.player1.staminaBar.increaseValue(self.player1.secondaryBasicAttackDamageInstance.damage)
+                                    self.player1.staminaBar.increaseValue(self.player1.secondaryBasicAttackDamageInstance.staminaBonus)
                                     self.player2.takeDamage(self.player1.secondaryBasicAttackDamageInstance.damage, self.player1.lookingDirection)
                                 self.player1.playerCurrentAction = self.player1.secondaryBasicAttackAction
                                 self.player1.playerCurrentAction.start()
@@ -527,6 +684,8 @@ class Physics():
                         self.player1.collider.velocity[0] = 0
                     elif self.player1.state == 'Damage':
                         self.player1.collider.velocity[0] = Physics.playerStumbleSpeed * -self.player1.lookingDirection
+                    elif self.player1.state == 'Death':
+                        self.player1.collider.velocity[0] = 0
                                 
                     if self.player2.state == 'Move':
                         # Move
@@ -568,7 +727,17 @@ class Physics():
                                 self.player1.staminaBar.decreaseValue(5)
                                 self.player2.basicPowerCooldown.start()
                         elif player2StartSpecialPower:
-                            pass
+                            if not self.player2.beam.active and self.player2.specialPowerCooldown.isReady and self.player2.collider.isFloored and (self.player2.staminaBar.value == 100):
+                                self.playSpecialPowerAnimation(self.player2)
+                                player2BeamInitialPositionX = self.player2.collider.position[0] + (self.player2.collider.width / 2)
+                                player2BeamInitialPositionY = self.player2.collider.position[1] + (self.player2.collider.height / 2)
+                                player2BeamInitialPositionVector = pygame.math.Vector2(player2BeamInitialPositionX, player2BeamInitialPositionY)
+                                self.player2.beam.cast(player2BeamInitialPositionVector, self.player2.lookingDirection)
+                                self.player2.playerCurrentAction = self.player2.specialPowerAction
+                                self.player2.playerCurrentAction.start()
+                                self.player2.state = 'Attack'
+                                self.player2.staminaBar.decreaseValue(100)
+                                self.player2.specialPowerCooldown.start()
                         elif keysPressed[Option.controlPlayer2.primaryBasicAttack]:
                             if self.player2.primaryBasicAttackCooldown.isReady and self.player2.collider.isFloored:
                                 primaryBasicAttackDamageInstanceX = 0
@@ -577,7 +746,7 @@ class Physics():
                                 elif self.player2.lookingDirection == -1:
                                     primaryBasicAttackDamageInstanceX = self.player2.collider.position[0] - (self.player2.collider.width / 4)
                                 if self.player2.primaryBasicAttackDamageInstance.trigger(primaryBasicAttackDamageInstanceX, self.player2.collider.position[1], self.player1):
-                                    self.player2.staminaBar.increaseValue(self.player2.primaryBasicAttackDamageInstance.damage)
+                                    self.player2.staminaBar.increaseValue(self.player2.primaryBasicAttackDamageInstance.staminaBonus)
                                     self.player1.takeDamage(self.player2.primaryBasicAttackDamageInstance.damage, self.player2.lookingDirection)
                                 self.player2.playerCurrentAction = self.player2.primaryBasicAttackAction
                                 self.player2.playerCurrentAction.start()
@@ -591,7 +760,7 @@ class Physics():
                                 elif self.player2.lookingDirection == -1:
                                     secondaryBasicAttackDamageInstanceX = self.player2.collider.position[0] - (self.player2.collider.width / 4)
                                 if self.player2.secondaryBasicAttackDamageInstance.trigger(secondaryBasicAttackDamageInstanceX, self.player2.collider.position[1], self.player1):
-                                    self.player2.staminaBar.increaseValue(self.player2.secondaryBasicAttackDamageInstance.damage)
+                                    self.player2.staminaBar.increaseValue(self.player2.secondaryBasicAttackDamageInstance.staminaBonus)
                                     self.player1.takeDamage(self.player1.secondaryBasicAttackDamageInstance.damage, self.player2.lookingDirection)
                                 self.player2.playerCurrentAction = self.player2.secondaryBasicAttackAction
                                 self.player2.playerCurrentAction.start()
@@ -601,6 +770,8 @@ class Physics():
                         self.player2.collider.velocity[0] = 0
                     elif self.player2.state == 'Damage':
                         self.player2.collider.velocity[0] = Physics.playerStumbleSpeed * -self.player2.lookingDirection
+                    elif self.player2.state == 'Death':
+                        self.player2.collider.velocity[0] = 0
 
                     # Update colliders
                     self.player1.collider.move()
@@ -617,6 +788,16 @@ class Physics():
                         if self.player2.projectile.isCollidingTargetPlayer:
                             self.player2.projectile.active = False
                             self.player1.takeDamage(Physics.Projectile.damage, self.player2.projectile.shootingDirection)
+
+                    # Update beams
+                    if self.player1.beam.active:
+                        self.player1.beam.tickAndDamage(60)
+                        if self.player1.beam.isCollidingTargetPlayer(self.player2) and self.player1.beam.isDamaging:
+                            self.player2.takeDamage(Physics.Beam.damage, self.player1.beam.shootingDirection)
+                    if self.player2.beam.active:
+                        self.player2.beam.tickAndDamage(60)
+                        if self.player2.beam.isCollidingTargetPlayer(self.player1) and self.player2.beam.isDamaging:
+                            self.player1.takeDamage(Physics.Beam.damage, self.player2.beam.shootingDirection)
                         
                     # Update sprites
                     if self.player1.state == 'Move':
@@ -749,6 +930,12 @@ class Physics():
                         self.player1.projectile.render()
                     if self.player2.projectile.active:
                         self.player2.projectile.render()
+
+                    # Render the beams
+                    if self.player1.beam.active:
+                        self.player1.beam.render()
+                    if self.player2.beam.active:
+                        self.player2.beam.render()
 
                     # If match is over, draw the results
                     if fightOver:

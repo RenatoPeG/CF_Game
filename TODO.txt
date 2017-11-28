@@ -1,6 +1,6 @@
 (0) Remaining sprites [DONE]
 (1) Implement rounds [DONE]
-(2) Implement special power
+(2) Implement special power [DONE]
 (3) Implement highscores
 (4) Perform unit tests
 (5) Deploy server to cloud
