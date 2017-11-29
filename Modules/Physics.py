@@ -4,8 +4,10 @@ import random
 import sys
 from Modules.Button import *
 from Modules.Color import *
+from Modules.Key import *
 from Modules.Music import *
 from Modules.Option import *
+from Modules.Proxy import *
 from Modules.Text import *
 pygame.init()
 
@@ -28,6 +30,10 @@ class Physics():
         # Set player characters
         self.player1Character = player1Character
         self.player2Character = player2Character
+
+        # Set player scores
+        self.player1Score = 0
+        self.player2Score = 0
 
         # Set display
         self.display = display
@@ -424,6 +430,13 @@ class Physics():
         def render(self):
             self.display.blit(self.currentSprite, self.collider.position)
 
+    def increasePlayerScore(self, playerNumber, score):
+        gain = score * 2
+        if playerNumber == 1:
+            self.player1Score = self.player1Score + gain
+        elif playerNumber == 2:
+            self.player2Score = self.player2Score + gain
+
     def playSpecialPowerAnimation(self, player):
         firstShootDuration = 1
         secondShootDuration = 1
@@ -564,7 +577,7 @@ class Physics():
                     self.display.fill(Color.white)
                     pygame.draw.rect(self.display, Color.black, (20, 20, self.currentDisplayWidth - 40, self.currentDisplayHeight - 40))
 
-                    buttonBack = Button('Regresar', 'white', 'dolphins.ttf', 20, Color.black, Color.brightOrange, 30, 30, 150, 30, self.display)
+                    buttonContinue = Button('Continuar', 'white', 'dolphins.ttf', 20, Color.black, Color.brightOrange, 30, 30, 150, 30, self.display)
 
                     # Draw the winner
                     if winner == 3:
@@ -575,12 +588,84 @@ class Physics():
 
                     # Listen for button clicked
                     if mousebuttonupTriggered:
-                        if buttonBack.mouseInBonudaries():
+                        if buttonContinue.mouseInBonudaries():
                             postFightLoop = False
 
                     # Refresh
                     pygame.display.update()
                     self.clock.tick(20)
+
+                # If no tie, get highscores and check if winner is in top ten
+                if winner == 1 or winner == 2:
+                    scores = Proxy.getScores()
+                    winnerScore = self.player1Score
+                    if winner == 2:
+                        winnerScore = self.player2Score
+                    newHighScoreSet = False
+
+                    if len(scores) < 10:
+                        newHighScoreSet = True
+                    else:
+                        # Bubble to sort scores
+                        for i in range(1, len(scores)):
+                            for j in range(0, len(scores) - i):
+                                if(scores[j]['score'] < scores[j + 1]['score']):
+                                    k = scores[j + 1]
+                                    scores[j + 1] = scores[j]
+                                    scores[j] = k;
+                        if winnerScore > scores[9]['score']:
+                            newHighScoreSet = True
+
+                    if newHighScoreSet:
+                        submitHighscoreLoop = True
+                        winnerName = ''
+                        while submitHighscoreLoop:
+                            # Analize events
+                            mousebuttonupTriggered = False
+                            keydownTriggered = False
+                            keydownKey = None
+                            for event in pygame.event.get():
+                                if event.type == pygame.QUIT:
+                                    pygame.quit()
+                                    sys.exit()
+                                elif event.type == pygame.MOUSEBUTTONUP:
+                                    mousebuttonupTriggered = True
+                                elif event.type == pygame.KEYDOWN:
+                                    keydownTriggered = True
+                                    keydownKey = event.key
+
+                            # Draw background
+                            self.display.fill(Color.white)
+                            pygame.draw.rect(self.display, Color.black, (20, 20, self.currentDisplayWidth - 40, self.currentDisplayHeight - 40))
+
+                            # Draw menu content
+                            buttonContinue = Button('Continuar', 'white', 'dolphins.ttf', 20, Color.black, Color.brightOrange, 30, 30, 150, 30, self.display)
+
+                            Text.renderLabel('¡Nuevo record!', 'white', 'dolphins.ttf', 70, self.currentDisplayWidth / 2, 100, '', self.display)
+                            if len(winnerName) < 10:
+                                Text.renderLabel(winnerName + '_', 'white', 'arial.ttf', 50, self.currentDisplayWidth / 2, 250, '', self.display)
+                            else:
+                                Text.renderLabel(winnerName, 'white', 'arial.ttf', 50, self.currentDisplayWidth / 2, 250, '', self.display)
+                            Text.renderLabel(str(winnerScore), 'white', 'arial.ttf', 50, self.currentDisplayWidth / 2, 305, '', self.display)
+
+                            buttonSubmit = Button('PUBLICAR', 'white', 'dolphins.ttf', 36, Color.black, Color.brightOrange, (self.currentDisplayWidth / 2) - 150, 600, 300, 75, self.display)
+
+                            # Listen for button clicked
+                            if mousebuttonupTriggered:
+                                if buttonContinue.mouseInBonudaries():
+                                    submitHighscoreLoop = False
+                                if buttonSubmit.mouseInBonudaries():
+                                    if len(winnerName) > 0:
+                                        Proxy.setScore(winnerName, winnerScore)
+                                        submitHighscoreLoop = False
+                            elif keydownTriggered:
+                                if len(winnerName) < 10 and Key.isLetter(keydownKey):
+                                    winnerName = winnerName + Key.getKeyLabel(keydownKey).upper()
+
+                            # Refresh
+                            pygame.display.update()
+                            self.clock.tick(20)
+
             else:
                 preroundMessage = self.getRandomPreRoundMessage()
                 showRoundNumberCooldown.start()
@@ -662,6 +747,8 @@ class Physics():
                                 if self.player1.primaryBasicAttackDamageInstance.trigger(primaryBasicAttackDamageInstanceX, self.player1.collider.position[1], self.player2):
                                     self.player1.staminaBar.increaseValue(self.player1.primaryBasicAttackDamageInstance.staminaBonus)
                                     self.player2.takeDamage(self.player1.primaryBasicAttackDamageInstance.damage, self.player1.lookingDirection)
+                                    if self.player2.state != 'Death':
+                                        self.increasePlayerScore(1, self.player1.primaryBasicAttackDamageInstance.damage)
                                 self.player1.playerCurrentAction = self.player1.primaryBasicAttackAction
                                 self.player1.playerCurrentAction.start()
                                 self.player1.state = 'Attack'
@@ -676,6 +763,8 @@ class Physics():
                                 if self.player1.secondaryBasicAttackDamageInstance.trigger(secondaryBasicAttackDamageInstanceX, self.player1.collider.position[1], self.player2):
                                     self.player1.staminaBar.increaseValue(self.player1.secondaryBasicAttackDamageInstance.staminaBonus)
                                     self.player2.takeDamage(self.player1.secondaryBasicAttackDamageInstance.damage, self.player1.lookingDirection)
+                                    if self.player2.state != 'Death':
+                                        self.increasePlayerScore(1, self.player1.secondaryBasicAttackDamageInstance.damage)
                                 self.player1.playerCurrentAction = self.player1.secondaryBasicAttackAction
                                 self.player1.playerCurrentAction.start()
                                 self.player1.state = 'Attack'
@@ -748,6 +837,8 @@ class Physics():
                                 if self.player2.primaryBasicAttackDamageInstance.trigger(primaryBasicAttackDamageInstanceX, self.player2.collider.position[1], self.player1):
                                     self.player2.staminaBar.increaseValue(self.player2.primaryBasicAttackDamageInstance.staminaBonus)
                                     self.player1.takeDamage(self.player2.primaryBasicAttackDamageInstance.damage, self.player2.lookingDirection)
+                                    if self.player1.state != 'Death':
+                                        self.increasePlayerScore(2, self.player2.primaryBasicAttackDamageInstance.damage)
                                 self.player2.playerCurrentAction = self.player2.primaryBasicAttackAction
                                 self.player2.playerCurrentAction.start()
                                 self.player2.state = 'Attack'
@@ -762,6 +853,8 @@ class Physics():
                                 if self.player2.secondaryBasicAttackDamageInstance.trigger(secondaryBasicAttackDamageInstanceX, self.player2.collider.position[1], self.player1):
                                     self.player2.staminaBar.increaseValue(self.player2.secondaryBasicAttackDamageInstance.staminaBonus)
                                     self.player1.takeDamage(self.player1.secondaryBasicAttackDamageInstance.damage, self.player2.lookingDirection)
+                                    if self.player1.state != 'Death':
+                                        self.increasePlayerScore(2, self.player2.secondaryBasicAttackDamageInstance.damage)
                                 self.player2.playerCurrentAction = self.player2.secondaryBasicAttackAction
                                 self.player2.playerCurrentAction.start()
                                 self.player2.state = 'Attack'
@@ -783,21 +876,29 @@ class Physics():
                         if self.player1.projectile.isCollidingTargetPlayer:
                             self.player1.projectile.active = False
                             self.player2.takeDamage(Physics.Projectile.damage, self.player1.projectile.shootingDirection)
+                            if self.player2.state != 'Death':
+                                self.increasePlayerScore(1, Physics.Projectile.damage)
                     if self.player2.projectile.active:
                         self.player2.projectile.move(self.player1)
                         if self.player2.projectile.isCollidingTargetPlayer:
                             self.player2.projectile.active = False
                             self.player1.takeDamage(Physics.Projectile.damage, self.player2.projectile.shootingDirection)
+                            if self.player1.state != 'Death':
+                                self.increasePlayerScore(2, Physics.Projectile.damage)
 
                     # Update beams
                     if self.player1.beam.active:
                         self.player1.beam.tickAndDamage(60)
                         if self.player1.beam.isCollidingTargetPlayer(self.player2) and self.player1.beam.isDamaging:
                             self.player2.takeDamage(Physics.Beam.damage, self.player1.beam.shootingDirection)
+                            if self.player2.state != 'Death':
+                                self.increasePlayerScore(1, Physics.Beam.damage)
                     if self.player2.beam.active:
                         self.player2.beam.tickAndDamage(60)
                         if self.player2.beam.isCollidingTargetPlayer(self.player1) and self.player2.beam.isDamaging:
                             self.player1.takeDamage(Physics.Beam.damage, self.player2.beam.shootingDirection)
+                            if self.player1.state != 'Death':
+                                self.increasePlayerScore(2, Physics.Beam.damage)
                         
                     # Update sprites
                     if self.player1.state == 'Move':
@@ -912,12 +1013,16 @@ class Physics():
                         # Update timer
                         self.timer.tick(60)
                     
-                    # Draw the scenario
+                    # Draw the scenario hud
                     self.display.blit(self.scenario, (0, 0))
                     self.player1.healthBar.render()
                     self.player2.healthBar.render()
                     self.player1.staminaBar.render()
                     self.player2.staminaBar.render()
+                    pygame.draw.rect(self.display, Color.black, (50, 5, (self.currentDisplayWidth / 2) - 150, 30))
+                    Text.renderLabel(str(self.player1Score), 'white', 'dolphins.ttf', 30, 55, 5, 'topleft', self.display)
+                    pygame.draw.rect(self.display, Color.black, (self.currentDisplayWidth - ((self.currentDisplayWidth / 2) - 150) - 50, 5, (self.currentDisplayWidth / 2) - 150, 30))
+                    Text.renderLabel(str(self.player2Score), 'white', 'dolphins.ttf', 30, self.currentDisplayWidth - 55, 5, 'topright', self.display)
                     self.timer.render()
                     buttonBack = Button('Regresar', 'white', 'dolphins.ttf', 20, Color.black, Color.brightOrange, (self.currentDisplayWidth / 2) - 75, 5, 150, 30, self.display)
 

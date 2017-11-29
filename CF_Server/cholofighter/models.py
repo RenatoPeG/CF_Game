@@ -16,3 +16,11 @@ class Scenario(models.Model):
 
 	def __str__(self):
 		return self.name
+
+class Score(models.Model):
+	score_id = models.AutoField(primary_key=True)
+	name = models.CharField(max_length=100)
+	score = models.IntegerField()
+
+	def __str__(self):
+		return self.name

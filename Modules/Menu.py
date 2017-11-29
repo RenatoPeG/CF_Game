@@ -75,6 +75,7 @@ class Menu:
             buttonMusic = Button('Musica', 'white', 'dolphins.ttf', 35, Color.black, Color.brightGreen, self.currentDisplayWidth - 400, 45, 250, 50, self.display)
             buttonQuit = Button('Salir', 'white', 'dolphins.ttf', 35, Color.black, Color.red, 150, 115, 250, 50, self.display)
             buttonOptions = Button('Opciones', 'white', 'dolphins.ttf', 35, Color.black, Color.brightGreen, self.currentDisplayWidth - 400, 115, 250, 50, self.display)
+            buttonTop10 = Button('Top 10', 'white', 'dolphins.ttf', 35, Color.black, Color.blue, (self.currentDisplayWidth / 2) - 125, 45, 250, 50, self.display)
 
             # Listen for button clicked
             if mousebuttonupTriggered:
@@ -88,6 +89,8 @@ class Menu:
                     sys.exit()
                 elif buttonOptions.mouseInBonudaries():
                     self.gameOptions()
+                elif buttonTop10.mouseInBonudaries():
+                    self.gameTop10()
 
             # Refresh
             pygame.display.update()
@@ -583,6 +586,54 @@ class Menu:
                 elif buttonConfigurePlayer2.mouseInBonudaries():
                     self.configuredPlayer = 2
                     self.gameConfigurePlayer()
+
+            # Refresh
+            pygame.display.update()
+            self.clock.tick(20)
+
+    def gameTop10(self):
+        gameTop10Loop = True
+        while gameTop10Loop:
+            # Analize events
+            mousebuttonupTriggered = False
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.MOUSEBUTTONUP:
+                    mousebuttonupTriggered = True
+
+            # Draw background
+            self.display.fill(Color.white)
+            pygame.draw.rect(self.display, Color.black, (20, 20, self.currentDisplayWidth - 40, self.currentDisplayHeight - 40))
+
+            # Draw menu content
+            buttonBack = Button('Regresar', 'white', 'dolphins.ttf', 20, Color.black, Color.brightOrange, 30, 30, 150, 30, self.display)
+
+            Text.renderLabel('Top 10', 'white', 'dolphins.ttf', 70, self.currentDisplayWidth / 2, 100, '', self.display)
+
+            scores = Proxy.getScores()
+            if len(scores) == 0:
+                Text.renderLabel('No hay puntuaciones, ¡sé el primero!', 'white', 'arial.ttf', 20, self.currentDisplayWidth / 2, 200, '', self.display)
+            else:
+                if len(scores) > 1:
+                    # Bubble to sort scores
+                    for i in range(1, len(scores)):
+                        for j in range(0, len(scores) - i):
+                            if(scores[j]['score'] < scores[j + 1]['score']):
+                                k = scores[j + 1]
+                                scores[j + 1] = scores[j]
+                                scores[j] = k;
+                y = 200
+                for score in scores:
+                    Text.renderLabel(score['name'], 'white', 'arial.ttf', 20, 100, y, 'topleft', self.display)
+                    Text.renderLabel(str(score['score']), 'white', 'arial.ttf', 20, self.currentDisplayWidth - 100, y, 'topright', self.display)
+                    y = y + 30
+
+            # Listen for button clicked
+            if mousebuttonupTriggered:
+                if buttonBack.mouseInBonudaries():
+                    gameTop10Loop = False
 
             # Refresh
             pygame.display.update()

@@ -140,3 +140,7 @@ class Key():
 	@staticmethod
 	def getKeyLabel(keyCode):
 		return Key.dictionary[keyCode]
+
+	@staticmethod
+	def isLetter(keyCode):
+		return keyCode == pygame.K_a or keyCode == pygame.K_b or keyCode == pygame.K_c or keyCode == pygame.K_d or keyCode == pygame.K_e or keyCode == pygame.K_f or keyCode == pygame.K_g or keyCode == pygame.K_h or keyCode == pygame.K_i or keyCode == pygame.K_j or keyCode == pygame.K_k or keyCode == pygame.K_l or keyCode == pygame.K_m or keyCode == pygame.K_n or keyCode == pygame.K_o or keyCode == pygame.K_p or keyCode == pygame.K_q or keyCode == pygame.K_r or keyCode == pygame.K_s or keyCode == pygame.K_t or keyCode == pygame.K_u or keyCode == pygame.K_v or keyCode == pygame.K_w or keyCode == pygame.K_x or keyCode == pygame.K_y or keyCode == pygame.K_z

@@ -18,10 +18,12 @@ from django.contrib import admin
 from rest_framework import routers
 from cholofighter.views import CharacterViewSet
 from cholofighter.views import ScenarioViewSet
+from cholofighter.views import ScoreViewSet
 
 router = routers.DefaultRouter()
 router.register(r'character', CharacterViewSet)
 router.register(r'scenario', ScenarioViewSet)
+router.register(r'score', ScoreViewSet)
 
 urlpatterns = [
 	url(r'^admin/', admin.site.urls),
