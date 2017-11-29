@@ -3,9 +3,9 @@
 (2) Implement special power [DONE]
 (3) Implement highscores [DONE]
 (4) Perform unit tests
-(5) Deploy server to cloud
+(5) Deploy server to cloud [DONE]
 (6) Compile game into .exe file
-(7) Record gameplay video and upload it to YouTube
+(7) Record gameplay video and upload it to YouTube [DONE]
 
 0 > Juan Marroquin, Gianfranco Rosales
 1 > Renato Córdova
