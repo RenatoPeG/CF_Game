@@ -17,6 +17,10 @@ Las credenciales para administrador de Django son las siguientes
 Nombre de usuario: `admin`
 Contraseña: `insoft2017`
 
+Las credenciales para la máquina virtual son las siguientes:
+Nombre de usuario: `cholofighter`
+Contraseña: `Ingsoft20172`
+
 ## Sobre el trabajo
 
 Para una mejor referencia sobre este proyecto consultar el README del repositorio del juego.

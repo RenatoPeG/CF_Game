@@ -1,7 +1,7 @@
 import requests
 
 class Proxy():
-	baseUrl = 'http://localhost:8000/api-cholofighter/'
+	baseUrl = 'http://52.226.131.0/api-cholofighter/'
 
 	@staticmethod
 	def getCharacters():
