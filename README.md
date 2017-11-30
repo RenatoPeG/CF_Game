@@ -4,7 +4,7 @@
 ## Tarea 4
 - (Requisito) Seguir los pasos de la Wiki (ver más abajo) antes de continuar
 - Las pruebas del desarrollo de la integración se encuentran en la carpeta Documentación/Integración
-- Para ejecutar las pruebas unitarias, estando en la carpeta raiz, ejecutar el comando `python -m unittest UnitTests.py`
+- Para ejecutar las pruebas unitarias, estando en la carpeta raiz, ejecutar el comando `python -m unittest UnitTests`
 
 ## Wiki
 
