@@ -592,6 +592,15 @@ class Menu:
             self.clock.tick(20)
 
     def gameTop10(self):
+        scores = Proxy.getScores()
+        if len(scores) > 1:
+            # Bubble to sort scores
+            for i in range(1, len(scores)):
+                for j in range(0, len(scores) - i):
+                    if(scores[j]['score'] < scores[j + 1]['score']):
+                        k = scores[j + 1]
+                        scores[j + 1] = scores[j]
+                        scores[j] = k;
         gameTop10Loop = True
         while gameTop10Loop:
             # Analize events
@@ -612,18 +621,9 @@ class Menu:
 
             Text.renderLabel('Top 10', 'white', 'dolphins.ttf', 70, self.currentDisplayWidth / 2, 100, '', self.display)
 
-            scores = Proxy.getScores()
             if len(scores) == 0:
                 Text.renderLabel('No hay puntuaciones, ¡sé el primero!', 'white', 'arial.ttf', 20, self.currentDisplayWidth / 2, 200, '', self.display)
             else:
-                if len(scores) > 1:
-                    # Bubble to sort scores
-                    for i in range(1, len(scores)):
-                        for j in range(0, len(scores) - i):
-                            if(scores[j]['score'] < scores[j + 1]['score']):
-                                k = scores[j + 1]
-                                scores[j + 1] = scores[j]
-                                scores[j] = k;
                 y = 200
                 for score in scores:
                     Text.renderLabel(score['name'], 'white', 'arial.ttf', 20, 100, y, 'topleft', self.display)

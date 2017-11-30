@@ -10,6 +10,7 @@ Para ejecutar el juego seguir las siguientes instrucciones:
 - Situarse en la carpeta Vendor y ejecutar el comando `git clone https://github.com/requests/requests.git`
 - Situarse en la carpeta Vendor/requests y ejecutar el comando `pip install requests`
 - Volver a la carpeta raiz y ejecutar el comando `python CholoFighter.py` (Si no resulta, ejecutar `py CholoFighter.py`)
+- Para ejecutar las pruebas unitarias, estando en la carpeta raiz, ejecutar el comando `python -m unittest UnitTests.py`
 
 ## Sobre el trabajo
 
