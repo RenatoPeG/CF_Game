@@ -1,6 +1,11 @@
 # Ingeniería de Software 2 - 801
 **Trabajo Ingeniería de Software 2 - Juego en Python**
 
+## Tarea 4
+- (Requisito) Seguir los pasos de la Wiki (ver más abajo) antes de continuar
+- Las pruebas del desarrollo de la integración se encuentran en la carpeta Documentación/Integración
+- Para ejecutar las pruebas unitarias, estando en la carpeta raiz, ejecutar el comando `python -m unittest UnitTests.py`
+
 ## Wiki
 
 Para ejecutar el juego seguir las siguientes instrucciones:
@@ -10,7 +15,6 @@ Para ejecutar el juego seguir las siguientes instrucciones:
 - Situarse en la carpeta Vendor y ejecutar el comando `git clone https://github.com/requests/requests.git`
 - Situarse en la carpeta Vendor/requests y ejecutar el comando `pip install requests`
 - Volver a la carpeta raiz y ejecutar el comando `python CholoFighter.py` (Si no resulta, ejecutar `py CholoFighter.py`)
-- Para ejecutar las pruebas unitarias, estando en la carpeta raiz, ejecutar el comando `python -m unittest UnitTests.py`
 
 ## Sobre el trabajo
 
