@@ -3,7 +3,7 @@
 
 ## Tarea 4
 - (Requisito) Seguir los pasos de la Wiki (ver más abajo) antes de continuar
-- Las pruebas del desarrollo de la integración se encuentran en la carpeta Documentación/Integración
+- Las pruebas del desarrollo de la integración se encuentran en la carpeta Documentación/Integración, la url del repositorio es [esta](https://app.codeship.com/cholo-fighter)
 - Para ejecutar las pruebas unitarias, estando en la carpeta raiz, ejecutar el comando `python -m unittest UnitTests`
 
 ## Wiki
