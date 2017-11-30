@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 class Color:
 	black = (0, 0, 0)
 	white = (255, 255, 255)
